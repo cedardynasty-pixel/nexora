@@ -3,6 +3,7 @@ from style import inject_css, hero, section_title
 from auth import is_logged_in, require_login_notice, current_user, is_admin
 import db
 import gemini_client as gc
+import pdf_export
 
 inject_css()
 
@@ -79,9 +80,21 @@ with tab_notes:
                 try:
                     context_text = _context_for(notes_context_raw, topic.strip())
                     notes = gc.generate_notes(topic.strip(), grade, api_key, context_text)
-                    st.markdown(notes)
+                    st.session_state["notes_result"] = {"topic": topic.strip(), "text": notes}
                 except Exception as e:
                     st.error(f"Something went wrong: {e}")
+
+    if st.session_state.get("notes_result"):
+        result = st.session_state["notes_result"]
+        st.markdown(result["text"])
+        pdf_bytes = pdf_export.build_pdf(f"Notes: {result['topic']}", grade, result["text"])
+        st.download_button(
+            "⬇️ Download as PDF",
+            data=pdf_bytes,
+            file_name=f"{pdf_export.sanitize_filename('notes_' + result['topic'])}.pdf",
+            mime="application/pdf",
+            key="download_notes",
+        )
 
 # ---------------- WORKSHEET ----------------
 with tab_worksheet:
@@ -97,9 +110,21 @@ with tab_worksheet:
                 try:
                     context_text = _context_for(worksheet_context_raw, w_topic.strip())
                     worksheet = gc.generate_worksheet(w_topic.strip(), grade, num_q, api_key, context_text)
-                    st.markdown(worksheet)
+                    st.session_state["worksheet_result"] = {"topic": w_topic.strip(), "text": worksheet}
                 except Exception as e:
                     st.error(f"Something went wrong: {e}")
+
+    if st.session_state.get("worksheet_result"):
+        result = st.session_state["worksheet_result"]
+        st.markdown(result["text"])
+        pdf_bytes = pdf_export.build_pdf(f"Worksheet: {result['topic']}", grade, result["text"])
+        st.download_button(
+            "⬇️ Download as PDF",
+            data=pdf_bytes,
+            file_name=f"{pdf_export.sanitize_filename('worksheet_' + result['topic'])}.pdf",
+            mime="application/pdf",
+            key="download_worksheet",
+        )
 
 # ---------------- STUDY PLAN ----------------
 with tab_plan:
@@ -118,9 +143,21 @@ with tab_plan:
                     plan = gc.generate_study_plan(
                         subject.strip(), grade, duration, goal.strip(), api_key, context_text
                     )
-                    st.markdown(plan)
+                    st.session_state["plan_result"] = {"subject": subject.strip(), "text": plan}
                 except Exception as e:
                     st.error(f"Something went wrong: {e}")
+
+    if st.session_state.get("plan_result"):
+        result = st.session_state["plan_result"]
+        st.markdown(result["text"])
+        pdf_bytes = pdf_export.build_pdf(f"Study Plan: {result['subject']}", grade, result["text"])
+        st.download_button(
+            "⬇️ Download as PDF",
+            data=pdf_bytes,
+            file_name=f"{pdf_export.sanitize_filename('study_plan_' + result['subject'])}.pdf",
+            mime="application/pdf",
+            key="download_plan",
+        )
 
 # ---------------- FLASHCARDS ----------------
 with tab_flashcards:
@@ -137,6 +174,7 @@ with tab_flashcards:
                     context_text = _context_for(flashcards_context_raw, f_topic.strip())
                     cards = gc.generate_flashcards(f_topic.strip(), grade, count, api_key, context_text)
                     st.session_state["flashcards"] = cards
+                    st.session_state["flashcards_topic_saved"] = f_topic.strip()
                     st.session_state["flashcard_index"] = 0
                 except Exception as e:
                     st.error(f"Something went wrong: {e}")
@@ -164,3 +202,13 @@ with tab_flashcards:
             if st.button("Next ➡️", disabled=idx == len(cards) - 1):
                 st.session_state["flashcard_index"] = idx + 1
                 st.rerun()
+
+        flash_topic = st.session_state.get("flashcards_topic_saved", "flashcards")
+        pdf_bytes = pdf_export.build_flashcards_pdf(f"Flashcards: {flash_topic}", cards)
+        st.download_button(
+            "⬇️ Download all as PDF",
+            data=pdf_bytes,
+            file_name=f"{pdf_export.sanitize_filename('flashcards_' + flash_topic)}.pdf",
+            mime="application/pdf",
+            key="download_flashcards",
+        )

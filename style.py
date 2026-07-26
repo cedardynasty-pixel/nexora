@@ -54,8 +54,14 @@ html, body, [class*="css"] {
     margin-bottom: 1rem;
 }
 .nexora-card h3 {
-    color: var(--nexora-primary-dark);
+    color: var(--nexora-primary-dark) !important;
     margin-top: 0;
+}
+.nexora-card p,
+.nexora-card li,
+.nexora-card ul,
+.nexora-card ol {
+    color: #333333 !important;
 }
 
 /* Stat boxes */
@@ -67,12 +73,12 @@ html, body, [class*="css"] {
     margin-bottom: 1rem;
 }
 .nexora-stat h2 {
-    color: var(--nexora-primary);
+    color: var(--nexora-primary) !important;
     font-size: 1.9rem;
     margin-bottom: 0.2rem;
 }
 .nexora-stat p {
-    color: #555;
+    color: #555555 !important;
     margin: 0;
 }
 
@@ -91,7 +97,7 @@ html, body, [class*="css"] {
 }
 .nexora-plan .tag {
     background: var(--nexora-primary);
-    color: white;
+    color: white !important;
     font-size: 0.75rem;
     padding: 0.2rem 0.7rem;
     border-radius: 20px;
@@ -99,18 +105,26 @@ html, body, [class*="css"] {
     margin-bottom: 0.5rem;
 }
 .nexora-plan h1 {
-    color: var(--nexora-primary-dark);
+    color: var(--nexora-primary-dark) !important;
     font-size: 2rem;
     margin: 0.3rem 0;
+}
+.nexora-plan h3 {
+    color: #1a1a1a !important;
+}
+.nexora-plan ul,
+.nexora-plan li {
+    color: #333333 !important;
 }
 
 /* Section title */
 .nexora-section-title h2 {
     font-weight: 700;
     margin-bottom: 0.2rem;
+    color: var(--nexora-primary-dark) !important;
 }
 .nexora-section-title p {
-    color: #666;
+    color: #666666 !important;
 }
 
 /* Buttons: recolor Streamlit's default button to match brand */

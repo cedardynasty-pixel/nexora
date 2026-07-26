@@ -90,6 +90,13 @@ Notes:
 - Admin accounts don't see the AI Study Tools page themselves; that's a student-only
   feature. Admins manage books/chapters and the Gemini key instead.
 
+## Downloading generated material as PDF
+
+Every AI Study Tools output (Notes, Worksheet, Study Plan, Flashcards) has a
+**"Download as PDF"** button once generated, powered by `reportlab`. The PDF keeps
+basic markdown formatting (headings, bullet points, numbered lists, bold/italics)
+from Gemini's response.
+
 ## AI Study Tools (Gemini-powered, students only)
 
 Students get a "AI Study Tools" page (visible once logged in) that generates notes,
