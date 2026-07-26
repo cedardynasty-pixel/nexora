@@ -1,5 +1,10 @@
 """
-db.py — SQLite persistence layer for Nexora.
+db.py — persistence layer for Nexora.
+
+Uses Turso (hosted, libSQL — SQLite-compatible) when TURSO_DATABASE_URL and
+TURSO_AUTH_TOKEN are set in Streamlit secrets, so data survives app restarts
+on Streamlit Community Cloud. Falls back to a local SQLite file otherwise
+(handy for local development without a Turso account).
 
 Handles user accounts. Passwords are stored as PBKDF2-HMAC-SHA256 hashes
 with a per-user random salt (never store plaintext passwords).
@@ -12,6 +17,8 @@ import secrets
 from datetime import datetime
 from contextlib import contextmanager
 
+import streamlit as st
+
 DB_PATH = os.path.join(os.path.dirname(__file__), "data", "nexora.db")
 
 
@@ -19,11 +26,25 @@ def _hash_password(password: str, salt: bytes) -> str:
     return hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 100_000).hex()
 
 
+def _dict_row_factory(cursor, row):
+    return {col[0]: row[idx] for idx, col in enumerate(cursor.description)}
+
+
 @contextmanager
 def get_conn():
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
+    turso_url = st.secrets.get("TURSO_DATABASE_URL", "")
+    turso_token = st.secrets.get("TURSO_AUTH_TOKEN", "")
+
+    if turso_url and turso_token:
+        import libsql
+
+        conn = libsql.connect(database=turso_url, auth_token=turso_token)
+        conn.row_factory = _dict_row_factory
+    else:
+        os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+
     try:
         yield conn
         conn.commit()
